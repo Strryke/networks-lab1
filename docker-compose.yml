@@ -1,0 +1,7 @@
+services:
+  app:
+    build: .
+    container_name: python-lab1
+    ports:
+      - "8000:8000"
+
