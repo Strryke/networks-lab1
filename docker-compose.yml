@@ -1,7 +1,14 @@
+version: "3.8"
+
 services:
   app:
-    build: .
     container_name: python-lab1
+    build:
+      context: .
     ports:
-      - "8000:8000"
-
+      - 80:8000
+    restart: always
+    volumes:
+      - type: bind
+        source: ./lab1
+        target: /lab1/lab1
