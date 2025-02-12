@@ -7,15 +7,15 @@ ENV PYTHONBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
 RUN pip install poetry
-
+# RUN pip install psycopg2-binary
 # Set the working directory to a secure non-root location
 WORKDIR /lab1
 
 COPY . .
 
-# Install poetry and dependencies
+# Install poetry and dependencies, including dev dependencies
 RUN poetry config virtualenvs.create false && \
-    poetry install --no-interaction --no-ansi
+    poetry install --no-interaction --no-ansi --with dev
 
 # Copy the rest of the application
 
