@@ -22,25 +22,11 @@ services:
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-      POSTGRES_DB=testdb
+      POSTGRES_DB: testdb
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
-  test:
-    build:
-      context: .
-    command: >
-      sh -c "sleep 5 && poetry run pytest --disable-warnings -v"
-    volumes:
-      - ./tests:/lab1/tests
-    environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/testdb
-      - BASE_URL=http://app:8000
-    depends_on:
-      - app
-      - db
 
 volumes:
   postgres_data:
