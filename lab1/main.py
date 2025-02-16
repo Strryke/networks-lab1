@@ -1,12 +1,14 @@
-from enum import Enum
-from typing import Optional
 from fastapi import Depends, FastAPI, HTTPException, Header, Query
-from pydantic import BaseModel, ConfigDict
-from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy.orm import sessionmaker
 import uvicorn
-from sqlalchemy import Column, Integer, String, create_engine
+from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 import os
+
+from lab1.models import Base, Book, BookModel, BookUpdate, Sort
+from lab1.util import seed_initial_books
+
+ADMIN_PASSWORD = "admin:password"
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 engine = create_engine(DATABASE_URL)
@@ -22,51 +24,14 @@ def get_db():
         db.close()
 
 
-class Base(DeclarativeBase):
-    pass
-
-
-class Book(Base):
-    __tablename__ = "books"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    title = Column(String, index=True)
-    author = Column(String, index=True)
-
-
 Base.metadata.create_all(engine)
 
+
 with Session(engine) as session:
-    print("seeding books, count:", session.query(Book).count())
-    if session.query(Book).count() == 0:
-        print("count:", session.query(Book).count())
-        session.add(Book(title="The Great Gatsby", author="F. Scott Fitzgerald"))
-        session.add(Book(title="1984", author="George Orwell"))
-        session.add(Book(title="Pride and Prejudice", author="Jane Austen"))
-        session.commit()
+    seed_initial_books(session)
+
 
 app = FastAPI()
-
-
-class BookModel(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-    id: Optional[int] = None
-    title: str
-    author: str
-
-
-class BookUpdate(BaseModel):
-    title: Optional[str] = None
-    author: Optional[str] = None
-
-    # don't allow extra
-    model_config = ConfigDict(extra="forbid")
-
-
-class Sort(str, Enum):
-    id = "id"
-    title = "title"
-    author = "author"
 
 
 @app.get("/books")
@@ -80,7 +45,6 @@ def get_books(count: int = 10, sort: Sort = Sort.id, db: Session = Depends(get_d
     formatted_books = [
         BookModel(id=book.id, title=book.title, author=book.author) for book in books
     ]
-    print("books:", formatted_books)
     return formatted_books
 
 
@@ -145,14 +109,11 @@ def update_book(
     return {"message": "Book updated", "book": BookModel.model_validate(current_book)}
 
 
-admin_password = "admin:password"
-
-
 @app.get("/admin")
 def admin_page(Authorization: str = Header(None)):
     if not Authorization:
         raise HTTPException(status_code=401, detail="No Authorization header provided")
-    if Authorization != admin_password:
+    if Authorization != ADMIN_PASSWORD:
         raise HTTPException(status_code=401, detail="Unauthorized")
     return {"message": "Admin page"}
 

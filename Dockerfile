@@ -9,7 +9,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 RUN pip install poetry
 # RUN pip install psycopg2-binary
 # Set the working directory to a secure non-root location
-WORKDIR /lab1
+WORKDIR /app
 
 COPY . .
 

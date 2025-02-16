@@ -11,7 +11,7 @@ services:
     volumes:
       - type: bind
         source: ./lab1
-        target: /lab1/lab1
+        target: /app/lab1
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/testdb
     depends_on:
